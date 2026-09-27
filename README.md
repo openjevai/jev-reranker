@@ -22,6 +22,12 @@ when you want to reorder candidates without filtering by default. Both accept
 a query string and a list of document strings; scoring runs through the Jev API.
 The base package needs no local model or GPU.
 
+> **OpenJEV support:** Jev is built by [TypeSafe](https://typesafe.ai). This fork
+> keeps TypeSafe as the default and adds optional support for
+> [OpenJEV](https://openjev.sh), a free community gateway to the same Jev model —
+> set `OPENJEV_API_KEY` (or `JEV_PROVIDER=openjev`) to use it. Original project:
+> https://github.com/hotchpotch/jev-reranker by @hotchpotch.
+
 ## Highlights
 
 - Relevance filtering scores documents for their contribution to an answer,
@@ -431,8 +437,9 @@ results = reranker.rerank("query", ["document"])
 
 | Option | Meaning / default |
 | --- | --- |
-| `model` | Explicit value → `JEV_MODEL` (environment/`.env`) → `jev-latest` |
-| `api_key`, `api_key_env` | Explicit key and environment variable name (default `TYPESAFE_API_KEY`) |
+| `model` | Explicit value → `JEV_MODEL` (environment/`.env`) → `jev-latest` (TypeSafe) or `openjev` (OpenJEV) |
+| `api_key`, `api_key_env` | Explicit key and environment variable name (default `TYPESAFE_API_KEY` for TypeSafe, `OPENJEV_API_KEY` for OpenJEV) |
+| `provider` | `typesafe` (default) or `openjev`; also set via `JEV_PROVIDER` env. Auto-selects OpenJEV when only `OPENJEV_API_KEY` is set |
 | `dotenv_path` | `.env`; does not mutate the process environment |
 | `endpoint` | Explicit value → `TYPESAFE_ENDPOINT` → `https://api.typesafe.ai/v1/systemone`; a complete endpoint URL |
 | `max_concurrency` | 4 for listwise, 20 for pointwise/pairwise; shared instance-wide HTTP limit |

@@ -129,7 +129,9 @@ On HTTP 400/422 with `detail.error_type=max_tokens_exceeded`, halve the failed c
 
 Key precedence: explicit `api_key` → actual environment variable named by `api_key_env` → the same key in the selected `.env`. Default `api_key_env='TYPESAFE_API_KEY'` preserves TypeSafe compatibility. Read dotenv without changing process-wide environment variables. `dotenv_path=None` disables it. Treat empty environment values as missing; a missing key raises `ConfigurationError`. OpenAI variables are unnecessary.
 
-Model precedence: explicit model → `JEV_MODEL` in environment/`.env` → `jev-latest`. Endpoint precedence: explicit endpoint → `TYPESAFE_ENDPOINT` → `https://api.typesafe.ai/v1/systemone`. Require an absolute HTTPS URL, allowing local HTTP for tests. Reject URL credentials, query strings, and fragments. Do not follow redirects.
+Model precedence: explicit model → `JEV_MODEL` in environment/`.env` → `jev-latest` (TypeSafe) or `openjev` (OpenJEV). Endpoint precedence: explicit endpoint → `TYPESAFE_ENDPOINT` → `https://api.typesafe.ai/v1/systemone` (TypeSafe) or `https://api.openjev.sh/v1/systemone` (OpenJEV). Require an absolute HTTPS URL, allowing local HTTP for tests. Reject URL credentials, query strings, and fragments. Do not follow redirects.
+
+Provider selection: explicit `provider` parameter → `JEV_PROVIDER` in environment/`.env` → auto-detect. Auto-detect uses TypeSafe when `TYPESAFE_API_KEY` is set (default unchanged); uses OpenJEV when only `OPENJEV_API_KEY` is set; defaults to TypeSafe when neither key is set. When OpenJEV is selected, `api_key_env` defaults to `OPENJEV_API_KEY`, the model defaults to `openjev`, and the endpoint defaults to `https://api.openjev.sh/v1/systemone`. Anyone with a TypeSafe key sees zero behaviour change. OpenJEV is a free community gateway to the same Jev model built by TypeSafe.
 
 Default `max_concurrency` is 4 for listwise and 20 for pointwise/pairwise, shared across the instance. Listwise chunks remain sequential. The 180-second timeout applies to each HTTP I/O, not the entire ranking call.
 

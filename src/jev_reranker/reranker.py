@@ -119,7 +119,8 @@ class JevReranker:
         *,
         mode: str = "listwise",
         api_key: str | None = None,
-        api_key_env: str = "TYPESAFE_API_KEY",
+        api_key_env: str | None = None,
+        provider: str | None = None,
         dotenv_path: str | Path | None = ".env",
         endpoint: str | None = None,
         max_concurrency: int | None = None,
@@ -210,7 +211,6 @@ class JevReranker:
             or timeout <= 0
         ):
             raise ConfigurationError("timeout must be positive and finite.")
-        nonempty("api_key_env", api_key_env)
         if split_tokenizer_name is not None:
             nonempty("split_tokenizer_name", split_tokenizer_name)
         if split_tokenizer_revision is not None:
@@ -230,15 +230,41 @@ class JevReranker:
         def env(name: str) -> str | None:
             return os.environ.get(name) or file_env.get(name)
 
+        # Resolve provider: explicit parameter → JEV_PROVIDER env → auto-detect.
+        # TypeSafe stays the default when its key is set; OpenJEV is used only
+        # when explicitly requested or when only OPENJEV_API_KEY is available.
+        provider = provider if provider is not None else env("JEV_PROVIDER")
+        if provider is None:
+            if env("TYPESAFE_API_KEY") or env("OPENJEV_API_KEY") is None:
+                provider = "typesafe"
+            else:
+                provider = "openjev"
+        if provider not in ("typesafe", "openjev"):
+            raise ConfigurationError(
+                f"Unknown provider {provider!r}; use 'typesafe' or 'openjev'."
+            )
+        if provider == "openjev":
+            if api_key_env is None:
+                api_key_env = "OPENJEV_API_KEY"
+            default_model = "openjev"
+            default_endpoint = "https://api.openjev.sh/v1/systemone"
+        else:
+            if api_key_env is None:
+                api_key_env = "TYPESAFE_API_KEY"
+            default_model = "jev-latest"
+            default_endpoint = "https://api.typesafe.ai/v1/systemone"
+        self.provider = provider
+
+        nonempty("api_key_env", api_key_env)
         api_key = api_key if api_key is not None else env(api_key_env)
         if not isinstance(api_key, str) or not api_key.strip():
             raise ConfigurationError(f"Set {api_key_env} or pass api_key to use Jev.")
-        model = model if model is not None else env("JEV_MODEL") or "jev-latest"
+        model = model if model is not None else env("JEV_MODEL") or default_model
         nonempty("model", model)
         endpoint = (
             endpoint
             if endpoint is not None
-            else env("TYPESAFE_ENDPOINT") or "https://api.typesafe.ai/v1/systemone"
+            else env("TYPESAFE_ENDPOINT") or default_endpoint
         )
         nonempty("endpoint", endpoint)
         try:

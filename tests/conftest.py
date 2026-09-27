@@ -30,7 +30,13 @@ def offline_environment(request, monkeypatch):
         return
     import httpx
 
-    for name in ("TYPESAFE_API_KEY", "TYPESAFE_ENDPOINT", "JEV_MODEL"):
+    for name in (
+        "TYPESAFE_API_KEY",
+        "TYPESAFE_ENDPOINT",
+        "JEV_MODEL",
+        "OPENJEV_API_KEY",
+        "JEV_PROVIDER",
+    ):
         monkeypatch.delenv(name, raising=False)
 
     def forbid_network(*args, **kwargs):
